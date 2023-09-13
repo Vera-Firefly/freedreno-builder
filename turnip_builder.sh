@@ -88,83 +88,21 @@ ninja -C build-android-aarch64 &> "$workdir"/ninja_log
 echo "Using patchelf to match soname ..."  $'\n'
 cp "$workdir"/mesa-main/build-android-aarch64/src/freedreno/vulkan/libvulkan_freedreno.so "$workdir"
 cd "$workdir"
-patchelf --set-soname vulkan.adreno.so libvulkan_freedreno.so
-mv libvulkan_freedreno.so vulkan.adreno.so
 
 
 
-if ! [ -a vulkan.adreno.so ]; then
+if ! [ -a libvulkan_freedreno.so ]; then
 	echo -e "$red Build failed! $nocolor" && exit 1
 fi
 
 
 
 echo "Prepare magisk module structure ..." $'\n'
-p1="system/vendor/lib64/hw"
-mkdir -p "$magiskdir" && cd "$_"
-mkdir -p "$p1"
-
-
-meta="META-INF/com/google/android"
-mkdir -p "$meta"
-
-
-
-cat <<EOF >"$meta/update-binary"
-#################
-# Initialization
-#################
-umask 022
-# echo before loading util_functions
-ui_print() { echo "\$1"; }
-require_new_magisk() {
-  ui_print "*******************************"
-  ui_print " Please install Magisk v20.4+! "
-  ui_print "*******************************"
-  exit 1
-}
-#########################
-# Load util_functions.sh
-#########################
-OUTFD=\$2
-ZIPFILE=\$3
-[ -f /data/adb/magisk/util_functions.sh ] || require_new_magisk
-. /data/adb/magisk/util_functions.sh
-[ \$MAGISK_VER_CODE -lt 20400 ] && require_new_magisk
-install_module
-exit 0
-EOF
-
-
-
-cat <<EOF >"$meta/updater-script"
-#MAGISK
-EOF
-
-
-
-cat <<EOF >"module.prop"
-id=turnip
-name=turnip
-version=v1.0
-versionCode=1
-author=MrMiy4mo
-description=Turnip is an open-source vulkan driver for devices with adreno GPUs.
-EOF
-
-
-
-cat <<EOF >"customize.sh"
-set_perm_recursive \$MODPATH/system 0 0 755 u:object_r:system_file:s0
-set_perm_recursive \$MODPATH/system/vendor 0 2000 755 u:object_r:vendor_file:s0
-set_perm \$MODPATH/$p1/vulkan.adreno.so 0 0 0644 u:object_r:same_process_hal_file:s0
-EOF
-
+mkdir -p "$magiskdir" 
 
 
 echo "Copy necessary files from work directory ..." $'\n'
-cp "$workdir"/vulkan.adreno.so "$magiskdir"/"$p1"
-
+cp "$workdir"/libvulkan_freedreno.so "$magiskdir"/
 
 
 echo "Packing files in to magisk module ..." $'\n'
