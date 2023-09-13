@@ -103,7 +103,7 @@ mkdir -p "$magiskdir"
 
 echo "Copy necessary files from work directory ..." $'\n'
 cp "$workdir"/libvulkan_freedreno.so "$magiskdir"/
-
+cd "$magiskdir"
 
 echo "Packing files in to magisk module ..." $'\n'
 zip -r "$workdir"/turnip.zip ./* &> /dev/null
