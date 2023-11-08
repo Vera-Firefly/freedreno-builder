@@ -25,4 +25,4 @@ jobs:
       with:
         name: Upload
         path: |
-           turnip_workdir/turnip.zip
+           turnip_workdir/libvulkan_freedreno.so
