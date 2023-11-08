@@ -26,12 +26,3 @@ jobs:
         name: Upload
         path: |
           turnip_workdir/turnip.zip
-      
-    - name: Release "turnip"
-      uses: softprops/action-gh-release@v1
-      with:
-        body: Turnip magisk module
-        tag_name: workflow_${{github.run_number}}
-        name: Release ${{github.run_number}}
-        files: |
-           turnip_workdir/turnip.zip
