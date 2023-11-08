@@ -1,9 +1,19 @@
 name: Build "turnip"
 
 on:
+pull_request:
+
+    branches-ignore:
+
+      - ''
+      
+  push:
+
+    branches-ignore:
+
+      - ''
+
   workflow_dispatch:
-  schedule:
-  - cron: "20 5 1,15 * *"
 
 jobs:
   start_building_turnip:
