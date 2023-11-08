@@ -1,19 +1,9 @@
 name: Build "turnip"
 
 on:
-pull_request:
-
-    branches-ignore:
-
-      - ''
-      
-  push:
-
-    branches-ignore:
-
-      - ''
-
   workflow_dispatch:
+  schedule:
+  - cron: "20 5 1,15 * *"
 
 jobs:
   start_building_turnip:
@@ -33,6 +23,15 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.0
       with:
-        name: Release
+        name: Upload
+        path: |
+          turnip_workdir/turnip.zip
+      
+    - name: Release "turnip"
+      uses: softprops/action-gh-release@v1
+      with:
+        body: Turnip magisk module
+        tag_name: workflow_${{github.run_number}}
+        name: Release ${{github.run_number}}
         files: |
            turnip_workdir/turnip.zip
