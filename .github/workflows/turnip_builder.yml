@@ -3,25 +3,28 @@ name: Build "turnip"
 on:
   workflow_dispatch:
   schedule:
-  - cron: "20 5 1,15 * *"
+  - cron: "20 5 1,8,15,22 * *"
 
 jobs:
   start_building_turnip:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Prepare environment
       run: |
         sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
         sudo apt update
         sudo apt build-dep mesa -y
-    
+        sudo sed -i 's/jammy/mantic/g' /etc/apt/sources.list
+        sudo apt update
+        sudo apt install meson
+
     - name: Execute build script
       run: bash ./turnip_builder.sh
 
     - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v4
       with:
         name: Upload
         path: |
