@@ -98,9 +98,8 @@ port_lib_for_magisk(){
 	cp "$workdir"/mesa-main/build-android-aarch64/src/freedreno/vulkan/libvulkan_freedreno.so "$workdir"
 	cd "$workdir"
 	patchelf --set-soname vulkan.adreno.so libvulkan_freedreno.so
-	mv libvulkan_freedreno.so vulkan.adreno.so
 
-	if ! [ -a vulkan.adreno.so ]; then
+	if ! [ -a libvulkan_freedreno.so ]; then
 		echo -e "$red Build failed! $nocolor" && exit 1
 	fi
 
@@ -141,18 +140,11 @@ EOF
 	cat <<EOF >"customize.sh"
 set_perm_recursive \$MODPATH/system 0 0 755 u:object_r:system_file:s0
 set_perm_recursive \$MODPATH/system/vendor 0 2000 755 u:object_r:vendor_file:s0
-set_perm \$MODPATH/$p1/vulkan.adreno.so 0 0 0644 u:object_r:same_process_hal_file:s0
+set_perm \$MODPATH/$p1/libvulkan_freedreno 0 0 0644 u:object_r:same_process_hal_file:s0
 EOF
 
 	echo "Copy necessary files from work directory ..." $'\n'
-	cp "$workdir"/vulkan.adreno.so "$magiskdir"/"$p1"
-
-	echo "Packing files in to magisk module ..." $'\n'
-	zip -r "$workdir"/turnip.zip ./* &> /dev/null
-	if ! [ -a "$workdir"/turnip.zip ];
-		then echo -e "$red-Packing failed!$nocolor" && exit 1
-		else echo -e "$green-All done, you can take your module from here;$nocolor" && echo "$workdir"/turnip.zip
-	fi
+	cp "$workdir"/libvulkan_freedreno.so "$magiskdir"/"$p1"
 }
 
 run_all
