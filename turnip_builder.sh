@@ -8,7 +8,7 @@ workdir="$(pwd)/turnip_workdir"
 magiskdir="$workdir/turnip_module"
 ndkver="android-ndk-r26c"
 sdkver="31"
-mesasrc="https://gitlab.freedesktop.org/mesa/mesa/-/archive/main/mesa-main.zip"
+mesasrc="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-24.1.1/mesa-mesa-24.1.1.zip"
 clear
 
 # there are 4 functions here, simply comment to disable.
@@ -55,11 +55,11 @@ prepare_workdir(){
 	unzip "$ndkver"-linux.zip  &> /dev/null
 
 	echo "Downloading mesa source (~50 MB) ..." $'\n'
-	curl "$mesasrc" --output mesa-main.zip &> /dev/null
+	curl "$mesasrc" --output mesa-mesa-24.1.1.zip &> /dev/null
 	###
 	echo "Exracting mesa source to a folder ..." $'\n'
-	unzip mesa-main.zip &> /dev/null
-	cd mesa-main
+	unzip mesa-mesa-24.1.1.zip &> /dev/null
+	cd mesa-mesa-24.1.1
 }
 
 
@@ -85,7 +85,7 @@ endian = 'little'
 EOF
 
 	echo "Generating build files ..." $'\n'
-	meson build-android-aarch64 --cross-file "$workdir"/mesa-main/android-aarch64 -Dbuildtype=release -Dplatforms=android -Dplatform-sdk-version=$sdkver -Dandroid-stub=true -Dgallium-drivers= -Dvulkan-drivers=freedreno -Dvulkan-beta=true -Dfreedreno-kmds=kgsl -Db_lto=true &> "$workdir"/meson_log
+	meson build-android-aarch64 --cross-file "$workdir"/mesa-mesa-24.1.1/android-aarch64 -Dbuildtype=release -Dplatforms=android -Dplatform-sdk-version=$sdkver -Dandroid-stub=true -Dgallium-drivers= -Dvulkan-drivers=freedreno -Dvulkan-beta=true -Dfreedreno-kmds=kgsl -Db_lto=true &> "$workdir"/meson_log
 
 	echo "Compiling build files ..." $'\n'
 	ninja -C build-android-aarch64 &> "$workdir"/ninja_log
@@ -95,7 +95,7 @@ EOF
 
 port_lib_for_magisk(){
 	echo "Using patchelf to match soname ..."  $'\n'
-	cp "$workdir"/mesa-main/build-android-aarch64/src/freedreno/vulkan/libvulkan_freedreno.so "$workdir"
+	cp "$workdir"/mesa-mesa-24.1.1/build-android-aarch64/src/freedreno/vulkan/libvulkan_freedreno.so "$workdir"
 	cd "$workdir"
 	patchelf --set-soname vulkan.adreno.so libvulkan_freedreno.so
 
