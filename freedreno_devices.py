@@ -1005,7 +1005,7 @@ add_gpus([
     ], A6xxGPUInfo(
         CHIP.A7XX,
         [a7xx_base, a7xx_735],
-        num_ccu = 4,
+        num_ccu = 6,
         tile_align_w = 96,
         tile_align_h = 32,
         num_vsc_pipes = 32,
