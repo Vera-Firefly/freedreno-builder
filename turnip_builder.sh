@@ -60,7 +60,7 @@ prepare_workdir(){
 	echo "Exracting mesa source to a folder ..." $'\n'
 	unzip mesa-mesa-24.1.2.zip &> /dev/null
 
-        cp -rf ../freedreno_devices.py turnip_workdir/mesa-mesa-24.1.2/src/freedreno/common/
+        cp -rf ../freedreno_devices.py mesa-mesa-24.1.2/src/freedreno/common/
 
 	cd mesa-mesa-24.1.2
 }
