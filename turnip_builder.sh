@@ -9,7 +9,6 @@ magiskdir="$workdir/turnip_module"
 ndkver="android-ndk-r26c"
 sdkver="31"
 mesasrc="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-24.1.2/mesa-mesa-24.1.2.zip"
-patch="https://github.com/Vera-Firefly/freedreno-builder/releases/download/test/freedreno_devices.zip"
 clear
 
 # there are 4 functions here, simply comment to disable.
@@ -60,12 +59,6 @@ prepare_workdir(){
 	###
 	echo "Exracting mesa source to a folder ..." $'\n'
 	unzip mesa-mesa-24.1.2.zip &> /dev/null
-
-        echo "Downloading patch..." $'\n'
-	curl "$patch" --output freedreno_devices.zip &> /dev/null
-	###
-	echo "Extra Patch source to mesa folder ..." $'\n'
-	unzip freedreno_devices.zip &> /dev/null
 
         ls -a
 
