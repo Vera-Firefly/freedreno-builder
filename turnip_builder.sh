@@ -62,10 +62,10 @@ prepare_workdir(){
 	unzip mesa-mesa-24.1.2.zip &> /dev/null
 
         echo "Downloading patch..." $'\n'
-	curl "$patch" --output patch-1.zip &> /dev/null
+	curl "$patch" --output freedreno_devices.zip &> /dev/null
 	###
 	echo "Extra Patch source to mesa folder ..." $'\n'
-	unzip patch-1.zip &> /dev/null
+	unzip freedreno_devices.zip &> /dev/null
 
         ls -a
 
