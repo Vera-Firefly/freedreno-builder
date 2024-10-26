@@ -6,8 +6,8 @@ nocolor='\033[0m'
 deps="meson ninja patchelf unzip curl pip flex bison zip"
 workdir="$(pwd)/turnip_workdir"
 magiskdir="$workdir/turnip_module"
-ndkver="android-ndk-r26c"
-sdkver="31"
+ndkver="android-ndk-r27c"
+sdkver="27"
 mesasrc="https://gitlab.freedesktop.org/mesa/mesa/-/archive/main/mesa-main.zip"
 clear
 
@@ -18,6 +18,7 @@ run_all(){
 	prepare_workdir
 	build_lib_for_android
 	port_lib_for_magisk
+	port_lib_for_adrenotools
 }
 
 
@@ -76,7 +77,7 @@ cpp = ['ccache', '$ndk/aarch64-linux-android$sdkver-clang++', '-fno-exceptions',
 c_ld = 'lld'
 cpp_ld = 'lld'
 strip = '$ndk/aarch64-linux-android-strip'
-pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=NDKDIR/pkgconfig', '/usr/bin/pkg-config']
+pkg-config = ['env', 'PKG_CONFIG_LIBDIR=NDKDIR/pkg-config', '/usr/bin/pkg-config']
 [host_machine]
 system = 'android'
 cpu_family = 'aarch64'
@@ -85,7 +86,7 @@ endian = 'little'
 EOF
 
 	echo "Generating build files ..." $'\n'
-	meson build-android-aarch64 --cross-file "$workdir"/mesa-main/android-aarch64 -Dbuildtype=release -Dplatforms=android -Dplatform-sdk-version=$sdkver -Dandroid-stub=true -Dgallium-drivers= -Dvulkan-drivers=freedreno -Dvulkan-beta=true -Dfreedreno-kmds=kgsl -Db_lto=true &> "$workdir"/meson_log
+	meson setup build-android-aarch64 --cross-file "$workdir"/mesa-main/android-aarch64 -Dbuildtype=release -Dplatforms=android -Dplatform-sdk-version=$sdkver -Dandroid-stub=true -Dgallium-drivers= -Dvulkan-drivers=freedreno -Dvulkan-beta=true -Dfreedreno-kmds=kgsl -Db_lto=true -Dstrip=true &> "$workdir"/meson_log
 
 	echo "Compiling build files ..." $'\n'
 	ninja -C build-android-aarch64 &> "$workdir"/ninja_log
@@ -98,8 +99,9 @@ port_lib_for_magisk(){
 	cp "$workdir"/mesa-main/build-android-aarch64/src/freedreno/vulkan/libvulkan_freedreno.so "$workdir"
 	cd "$workdir"
 	patchelf --set-soname vulkan.adreno.so libvulkan_freedreno.so
+	mv libvulkan_freedreno.so vulkan.adreno.so
 
-	if ! [ -a libvulkan_freedreno.so ]; then
+	if ! [ -a vulkan.adreno.so ]; then
 		echo -e "$red Build failed! $nocolor" && exit 1
 	fi
 
@@ -131,7 +133,7 @@ EOF
 	cat <<EOF >"module.prop"
 id=turnip
 name=turnip
-version=v1.0
+version=$(cat $workdir/mesa-main/VERSION)
 versionCode=1
 author=MrMiy4mo
 description=Turnip is an open-source vulkan driver for devices with adreno GPUs.
@@ -140,11 +142,46 @@ EOF
 	cat <<EOF >"customize.sh"
 set_perm_recursive \$MODPATH/system 0 0 755 u:object_r:system_file:s0
 set_perm_recursive \$MODPATH/system/vendor 0 2000 755 u:object_r:vendor_file:s0
-set_perm \$MODPATH/$p1/libvulkan_freedreno 0 0 0644 u:object_r:same_process_hal_file:s0
+set_perm \$MODPATH/$p1/vulkan.adreno.so 0 0 0644 u:object_r:same_process_hal_file:s0
 EOF
 
 	echo "Copy necessary files from work directory ..." $'\n'
-	cp "$workdir"/libvulkan_freedreno.so "$magiskdir"/"$p1"
+	cp "$workdir"/vulkan.adreno.so "$magiskdir"/"$p1"
+
+	echo "Packing files in to magisk module ..." $'\n'
+	zip -r "$workdir"/turnip.zip ./* &> /dev/null
+	if ! [ -a "$workdir"/turnip.zip ];
+		then echo -e "$red-Packing failed!$nocolor" && exit 1
+		else echo -e "$green-All done, you can take your module from here;$nocolor" && echo "$workdir"/turnip.zip
+	fi
+}
+
+port_lib_for_adrenotools(){
+	libname=vulkan.freedreno.so
+	echo "Using patchelf to match soname" $'\n'
+	cp "$workdir"/mesa-main/build-android-aarch64/src/freedreno/vulkan/libvulkan_freedreno.so "$workdir"/$libname
+	cd "$workdir"
+	patchelf --set-soname $libname $libname
+	echo "Preparing meta.json" $'\n'
+	cat <<EOF > "meta.json"
+{
+	"schemaVersion": 1,
+	"name": "freedreno_turnip-CI",
+	"description": "$(date)",
+	"author": "MrMiy4mo, kethen",
+	"packageVersion": "1",
+	"vendor": "Mesa",
+	"driverVersion": "$(cat $workdir/mesa-main/VERSION)",
+	"minApi": $sdkver,
+	"libraryName": "$libname"
+}
+EOF
+
+	zip -9 "$workdir"/turnip_adrenotools.zip $libname meta.json &> /dev/null
+	if ! [ -a "$workdir"/turnip_adrenotools.zip ];
+		then echo -e "$red-Packing turnip_adrenotools.zip failed!$nocolor" && exit 1
+		else echo -e "$green-All done, you can take your module from here;$nocolor" && echo "$workdir"/turnip_adrenotools.zip
+	fi
 }
 
 run_all
