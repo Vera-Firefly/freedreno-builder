@@ -13,8 +13,10 @@ jobs:
 
     - name: Prepare environment
       run: |
+        # sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
         sudo apt update
-        sudo apt build-dep mesa -y
+        # sudo apt build-dep mesa -y
+        # sudo sed -i 's/jammy/mantic/g' /etc/apt/sources.list
         sudo apt install meson
 
     - name: Execute build script
